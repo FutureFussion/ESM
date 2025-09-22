@@ -1,6 +1,7 @@
 import 'package:european_single_marriage/core/common/custom_text.dart';
 import 'package:european_single_marriage/core/utils/constant/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class MainButton extends StatelessWidget {
   final String title;
@@ -15,8 +16,9 @@ class MainButton extends StatelessWidget {
   final double? cir;
   final double? fontSize;
   final FontWeight? fontWeight;
+  bool loading;
 
-  const MainButton({
+  MainButton({
     super.key,
     required this.title,
     required this.onPressed,
@@ -30,6 +32,7 @@ class MainButton extends StatelessWidget {
     this.fontSize,
     this.fontWeight,
     this.imageHeight,
+    this.loading = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -49,19 +52,33 @@ class MainButton extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-       
             Center(
-              child: CustomText(
-                title: title,
-                fontFamily: "Inter",
-                textAlign: TextAlign.center,
-                color: textColor ?? AppColors.white,
-                fontSize: fontSize ?? 16,
-                fontWeight: fontWeight ?? FontWeight.w500,
-              ),
+              child:
+                  loading
+                      ? Center(
+                        child: SleekCircularSlider(
+                          appearance: CircularSliderAppearance(
+                            spinnerMode: true,
+                            customColors: CustomSliderColors(
+                              trackColor: AppColors.grey,
+                              progressBarColor: AppColors.white,
+                              shadowColor: AppColors.white,
+                              shadowMaxOpacity: 0.5,
+                            ),
+                            size: 30,
+                          ),
+                        ),
+                      )
+                      : CustomText(
+                        title: title,
+                        fontFamily: "Inter",
+                        textAlign: TextAlign.center,
+                        color: textColor ?? AppColors.white,
+                        fontSize: fontSize ?? 16,
+                        fontWeight: fontWeight ?? FontWeight.w500,
+                      ),
             ),
 
-       
             if (leftImage != null)
               Positioned(
                 left: 12,

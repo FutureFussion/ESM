@@ -27,8 +27,9 @@ class CustomTextField extends StatelessWidget {
   final TextAlign textAlign;
   final int? maxLength;
   final bool filled;
+   String? Function(String?)? validator;
 
-  const CustomTextField({
+   CustomTextField({
     super.key,
     required this.title,
     this.hintText = '',
@@ -50,19 +51,21 @@ class CustomTextField extends StatelessWidget {
     this.textAlign = TextAlign.start,
     this.maxLength,
     this.filled = false,
+      this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     Widget textFieldWidget({required bool isObscured}) {
-      return TextField(
+      return TextFormField(
         maxLength: maxLength,
         textAlign: textAlign,
         controller: controller,
         obscureText: isObscured,
         keyboardType: keyboardType,
         onChanged: onChanged,
-        onSubmitted: onSubmitted,
+        // onSubmitted: onSubmitted,
+        validator: validator,
         style: TextStyle(
           fontSize: fontSize ?? 16.0,
           fontWeight: fontWeight ?? FontWeight.normal,

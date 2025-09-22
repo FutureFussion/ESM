@@ -6,7 +6,13 @@ import 'package:flutter/material.dart';
 class AuthLogin extends StatelessWidget {
   final String bgImage;
   final Widget child;
-  const AuthLogin({super.key, required this.child, required this.bgImage});
+  final GlobalKey<FormState>? formKey;
+  const AuthLogin({
+    super.key,
+    required this.child,
+    required this.bgImage,
+    this.formKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,32 +35,35 @@ class AuthLogin extends StatelessWidget {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             resizeToAvoidBottomInset: false,
-            body: Column(
-              children: [
-                Spacer(),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(50),
-                        topRight: Radius.circular(50),
+            body: Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  Spacer(),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(50),
+                          topRight: Radius.circular(50),
+                        ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: AppSizes.paddingSH,
-                        right: AppSizes.paddingSH,
-                        top: AppSizes.spaceMd,
-                        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: AppSizes.paddingSH,
+                          right: AppSizes.paddingSH,
+                          top: AppSizes.spaceMd,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                        ),
+                        child: child,
                       ),
-                      child: child,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

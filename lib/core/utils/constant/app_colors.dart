@@ -23,6 +23,8 @@ class AppColors {
 
   // Others Colors
   static const Color white = Colors.white;
+  static const Color red = Colors.red;
+  static const Color green = Colors.green;
   static const Color blue = Color(0xFF3E58E0);
 
   static const Color offWhite = Color(0xFFF6F7F9);

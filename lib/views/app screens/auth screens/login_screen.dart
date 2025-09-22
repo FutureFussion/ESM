@@ -10,16 +10,19 @@ import 'package:european_single_marriage/routes/app_routes.dart';
 import 'package:european_single_marriage/views/screens%20widgets/auth%20widget/auth_login.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
 class LoginScreen extends StatelessWidget {
-  final controller = Get.put(AuthController());
+  final authCtrl = Get.put(AuthController());
+  final _formKey = GlobalKey<FormState>();
   LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AuthLogin(
       bgImage: AppImages.login,
+      formKey: _formKey,
       child: Column(
         children: [
           AppSizes.spaceBtwItems.heightBox,
@@ -30,26 +33,43 @@ class LoginScreen extends StatelessWidget {
           ),
           AppSizes.spaceMd.heightBox,
           CustomTextField(
-            title: "Please enter username",
+            title: "Please enter email",
             hintText: "",
-            keyboardType: TextInputType.name,
-            controller: controller.loginUserName,
+            keyboardType: TextInputType.emailAddress,
+            controller: authCtrl.loginUserEmail.value,
+            validator:
+                MultiValidator([
+                  RequiredValidator(errorText: "Please enter your email"),
+                  EmailValidator(errorText: "Please enter a valid email"),
+                ]).call,
           ),
           CustomTextField(
             title: "Please enter password",
-            controller: controller.loginPassword,
+            controller: authCtrl.loginPassword.value,
             keyboardType: TextInputType.name,
             hintText: '',
-            obscureText: controller.isPasswordHidden,
+            obscureText: authCtrl.isPasswordHidden,
+            validator:
+                MultiValidator([
+                  RequiredValidator(errorText: "Please enter your password"),
+                  MinLengthValidator(
+                    8,
+                    errorText: "Password must be at least 8 characters long",
+                  ),
+                ]).call,
           ),
 
           AppSizes.spaceMd.heightBox,
-
-          MainButton(
-            title: "Login",
-            onPressed: () {
-              Get.toNamed(AppRoutes.basicDetails);
-            },
+          Obx(
+            () => MainButton(
+              title: "Login",
+              loading: authCtrl.loading.value,
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  authCtrl.login();
+                }
+              },
+            ),
           ),
           AppSizes.xxl.heightBox,
           RichText(

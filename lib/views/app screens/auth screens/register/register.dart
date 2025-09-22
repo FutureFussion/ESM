@@ -10,16 +10,19 @@ import 'package:european_single_marriage/routes/app_routes.dart';
 import 'package:european_single_marriage/views/screens%20widgets/auth%20widget/auth_login.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
 class RegisterScreen extends StatelessWidget {
-  final controller = Get.put(AuthController());
+  final authCtrl = Get.put(AuthController());
+  final _formKey = GlobalKey<FormState>();
   RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AuthLogin(
       bgImage: AppImages.login,
+      formKey: _formKey,
       child: Column(
         children: [
           AppSizes.spaceBtwItems.heightBox,
@@ -29,33 +32,54 @@ class RegisterScreen extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
           AppSizes.spaceMd.heightBox,
-
           CustomTextField(
-            controller: controller.fullName,
+            controller: authCtrl.fullName.value,
             title: "Full Name",
             keyboardType: TextInputType.name,
             hintText: "",
+            validator:
+                MultiValidator([
+                  RequiredValidator(errorText: "Please enter your full name"),
+                ]).call,
           ),
           CustomTextField(
-            controller: controller.mobileNumber,
-            title: "Mobile Number",
-            keyboardType: TextInputType.phone,
+            title: "Email ID:",
             hintText: "",
+            keyboardType: TextInputType.emailAddress,
+            controller: authCtrl.emailCtrl.value,
+            validator:
+                MultiValidator([
+                  RequiredValidator(errorText: "Please enter your email"),
+                  EmailValidator(errorText: "Please enter a valid email"),
+                ]).call,
           ),
           CustomTextField(
             title: "Create Password",
-            controller: controller.registerPassword,
+            controller: authCtrl.registerPassword.value,
             hintText: '',
-            obscureText: controller.isPasswordHidden,
+            obscureText: authCtrl.isPasswordHidden,
+            validator:
+                MultiValidator([
+                  RequiredValidator(errorText: "Pleae enter create a password"),
+                  MinLengthValidator(
+                    8,
+                    errorText: "Password must be at least 8 characters long",
+                  ),
+                ]).call,
           ),
 
           AppSizes.sm.heightBox,
 
-          MainButton(
-            title: "Register Now",
-            onPressed: () {
-              Get.toNamed(AppRoutes.basicDetails);
-            },
+          Obx(
+            () => MainButton(
+              title: "Register Now",
+              loading: authCtrl.loading.value,
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  authCtrl.register();
+                }
+              },
+            ),
           ),
           AppSizes.spaceBtwSections.heightBox,
           RichText(
