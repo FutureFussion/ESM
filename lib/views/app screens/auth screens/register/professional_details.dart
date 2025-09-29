@@ -1,4 +1,4 @@
-import 'package:european_single_marriage/controller/auth_controller.dart';
+import 'package:european_single_marriage/controller/auth%20controller/auth_controller.dart';
 import 'package:european_single_marriage/core/common/custom_drop_down.dart';
 import 'package:european_single_marriage/core/common/main_button.dart';
 import 'package:european_single_marriage/core/extensions/media_query.dart';

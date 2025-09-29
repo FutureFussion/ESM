@@ -1,4 +1,4 @@
-import 'package:european_single_marriage/controller/auth_controller.dart';
+import 'package:european_single_marriage/controller/auth%20controller/auth_controller.dart';
 import 'package:european_single_marriage/controller/home%20controller/profile_controller.dart';
 import 'package:european_single_marriage/core/common/custam_container.dart';
 import 'package:european_single_marriage/core/common/custom_text.dart';

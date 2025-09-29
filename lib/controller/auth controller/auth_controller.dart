@@ -402,6 +402,64 @@ class AuthController extends GetxController with NetworkAwareController {
     Get.toNamed(AppRoutes.aboutYourself);
   }
 
+  // Future<bool> saveAboutYourself() async {
+  //   if (!await checkConnection(
+  //     statusController: rxRequestStatus,
+  //     errorController: errorMessage,
+  //   )) {
+  //     return true;
+  //   }
+
+  //   try {
+  //     loading.value = true;
+  //     setRxRequestStatus(Status.LOADING);
+
+  //     final user = FirebaseAuth.instance.currentUser;
+  //     if (user == null) throw Exception("User not logged in");
+
+  //     // ✅ Convert picked images to Base64
+  //     List<String> base64Images = [];
+  //     for (int i = 0; i < pickedImages.length; i++) {
+  //       final base64Image = await firebaseServices.convertImageToBase64(
+  //         pickedImages[i],
+  //       );
+  //       base64Images.add(base64Image);
+  //     }
+
+  //     // ✅ Save only profileImages in Realtime DB
+  //     await firebaseServices.saveToRealtimeDB(
+  //       path: "users/${user.uid}/profileImages",
+  //       data: base64Images,
+  //     );
+
+  //     // ✅ Save about yourself + meta data in Firestore
+  //     await firebaseServices.updateDataToFirestore(
+  //       collection: AppCollections.users,
+  //       id: user.uid,
+  //       data: {
+  //         "aboutYourself": aboutYourselflCtrl.value.text.trim(),
+  //         "profileStep": 5,
+  //         "profileCompletion": 100,
+  //         "profileImages": base64Images,
+  //         "updatedAt": FieldValue.serverTimestamp(),
+  //       },
+  //     );
+
+  //     Utils.snackBar("Success", "Profile completed!", AppColors.green);
+  //     setRxRequestStatus(Status.COMPLETED);
+  //     clearController();
+  //     return true;
+  //   } catch (e) {
+  //     errorMessage.value = e.toString();
+  //     log("Error : $e");
+  //     setRxRequestStatus(Status.ERROR);
+  //     Utils.snackBar("Error", e.toString(), AppColors.red);
+  //     return false;
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // }
+
   Future<bool> saveAboutYourself() async {
     if (!await checkConnection(
       statusController: rxRequestStatus,
@@ -417,31 +475,26 @@ class AuthController extends GetxController with NetworkAwareController {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not logged in");
 
-      // ✅ Convert picked images to Base64
-      List<String> base64Images = [];
+      // ✅ Upload multiple images to Firebase Storage
+      List<String> imageUrls = [];
       for (int i = 0; i < pickedImages.length; i++) {
-        final base64Image = await firebaseServices.convertImageToBase64(
+        final url = await firebaseServices.uploadProfileImage(
+          "${user.uid}_$i",
           pickedImages[i],
         );
-        base64Images.add(base64Image);
+        imageUrls.add(url);
       }
 
-      // ✅ Save only profileImages in Realtime DB
-      await firebaseServices.saveToRealtimeDB(
-        path: "users/${user.uid}/profileImages",
-        data: base64Images,
-      );
-
-      // ✅ Save about yourself + meta data in Firestore
+      // ✅ Save step 5 data + image URLs in Firestore
       await firebaseServices.updateDataToFirestore(
         collection: AppCollections.users,
         id: user.uid,
         data: {
-          "aboutYourself": aboutYourselflCtrl.value.text.trim(),
-          "profileStep": 5,
-          "profileCompletion": 100,
-          "profileImages": base64Images,
-          "updatedAt": FieldValue.serverTimestamp(),
+          'profileStep': 5,
+          'profileCompletion': 100,
+          'aboutYourself': aboutYourselflCtrl.value.text.trim(),
+          'profileImages': imageUrls,
+          'updatedAt': FieldValue.serverTimestamp(),
         },
       );
 
@@ -451,7 +504,6 @@ class AuthController extends GetxController with NetworkAwareController {
       return true;
     } catch (e) {
       errorMessage.value = e.toString();
-      log("Error : $e");
       setRxRequestStatus(Status.ERROR);
       Utils.snackBar("Error", e.toString(), AppColors.red);
       return false;
@@ -459,55 +511,6 @@ class AuthController extends GetxController with NetworkAwareController {
       loading.value = false;
     }
   }
-
-  // Future<void> saveAboutYourself() async {
-  //   if (!await checkConnection(
-  //     statusController: rxRequestStatus,
-  //     errorController: errorMessage,
-  //   )) {
-  //     return;
-  //   }
-
-  //   try {
-  //     loading.value = true;
-  //     setRxRequestStatus(Status.LOADING);
-
-  //     final user = FirebaseAuth.instance.currentUser;
-  //     if (user == null) throw Exception("User not logged in");
-
-  //     // ✅ Upload multiple images to Firebase Storage
-  //     List<String> imageUrls = [];
-  //     for (int i = 0; i < pickedImages.length; i++) {
-  //       final url = await firebaseServices.uploadProfileImage(
-  //         "${user.uid}_$i",
-  //         pickedImages[i],
-  //       );
-  //       imageUrls.add(url);
-  //     }
-
-  //     // ✅ Save step 5 data + image URLs in Firestore
-  //     await firebaseServices.updateDataToFirestore(
-  //       collection: AppCollections.users,
-  //       id: user.uid,
-  //       data: {
-  //         'profileStep': 5,
-  //         'profileCompletion': 100,
-  //         'aboutYourself': aboutYourselflCtrl.value.text.trim(),
-  //         'profileImages': imageUrls,
-  //         'updatedAt': FieldValue.serverTimestamp(),
-  //       },
-  //     );
-
-  //     Utils.snackBar("Success", "Profile completed!", AppColors.green);
-  //     setRxRequestStatus(Status.COMPLETED);
-  //   } catch (e) {
-  //     errorMessage.value = e.toString();
-  //     setRxRequestStatus(Status.ERROR);
-  //     Utils.snackBar("Error", e.toString(), AppColors.red);
-  //   } finally {
-  //     loading.value = false;
-  //   }
-  // }
 
   /// --- Login  --- ///
   Future<void> login() async {

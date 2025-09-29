@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:dotted_border/dotted_border.dart';
-import 'package:european_single_marriage/controller/auth_controller.dart';
+import 'package:european_single_marriage/controller/auth%20controller/auth_controller.dart';
 import 'package:european_single_marriage/core/common/custam_container.dart';
 import 'package:european_single_marriage/core/common/custom_text.dart';
 import 'package:european_single_marriage/core/common/custom_textfield.dart';

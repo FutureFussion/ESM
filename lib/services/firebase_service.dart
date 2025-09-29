@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -163,6 +164,7 @@ class FirebaseService extends GetxService {
         }
       }
     } catch (e) {
+      log("function error : $e");
       debugPrint("Error fetching data: $e");
       Utils.snackBar("Error", 'Failed to fetch data! $e', AppColors.red);
       return null;

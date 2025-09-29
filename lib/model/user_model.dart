@@ -79,7 +79,6 @@ class UserModel {
     this.updatedAt,
   });
 
-  /// ✅ From JSON
   UserModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
@@ -123,8 +122,6 @@ class UserModel {
     createdAt = json['createdAt'] is Timestamp ? json['createdAt'] : null;
     updatedAt = json['updatedAt'] is Timestamp ? json['updatedAt'] : null;
   }
-
-  /// ✅ To JSON
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
     data['id'] = id;
@@ -163,8 +160,8 @@ class UserModel {
     data['profileStep'] = profileStep;
     data['profileCompletion'] = profileCompletion;
 
-    data['createdAt'] = createdAt;
-    data['updatedAt'] = updatedAt;
+    data['createdAt'] = createdAt?.toDate().toIso8601String();
+    data['updatedAt'] = updatedAt?.toDate().toIso8601String();
 
     return data;
   }
@@ -172,6 +169,13 @@ class UserModel {
   String getCreatedAtString() {
     if (createdAt != null) {
       return createdAt!.toDate().toString();
+    }
+    return '';
+  }
+
+  String getUpdatedAtString() {
+    if (updatedAt != null) {
+      return updatedAt!.toDate().toString();
     }
     return '';
   }
