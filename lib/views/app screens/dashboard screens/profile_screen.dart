@@ -1,3 +1,4 @@
+import 'package:european_single_marriage/controller/auth_controller.dart';
 import 'package:european_single_marriage/controller/home%20controller/profile_controller.dart';
 import 'package:european_single_marriage/core/common/custam_container.dart';
 import 'package:european_single_marriage/core/common/custom_text.dart';
@@ -10,6 +11,7 @@ import 'package:get/get.dart';
 
 class ProfileScreen extends StatelessWidget {
   final ProfileController controller = Get.put(ProfileController());
+  final authCtrl = Get.put(AuthController());
   ProfileScreen({super.key});
 
   @override
@@ -89,11 +91,16 @@ class ProfileScreen extends StatelessWidget {
                     }),
 
                     AppSizes.spaceBtwItems.heightBox,
-                    MainButton(
-                      title: "Log Out",
-                      rightImage: "assets/images/arrowForward.png",
-                      backgroundColor: Color(0xFFC26308),
-                      onPressed: () {},
+                    Obx(
+                      () => MainButton(
+                        loading: authCtrl.loading.value,
+                        title: "Log Out",
+                        rightImage: "assets/images/arrowForward.png",
+                        backgroundColor: Color(0xFFC26308),
+                        onPressed: () {
+                          authCtrl.logout();
+                        },
+                      ),
                     ),
                     AppSizes.spaceBtwItems.heightBox,
                     MainButton(

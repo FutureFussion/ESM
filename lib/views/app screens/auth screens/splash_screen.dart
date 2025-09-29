@@ -1,5 +1,4 @@
 import 'package:european_single_marriage/controller/auth%20controller/splash_screen_controller.dart';
-import 'package:european_single_marriage/core/utils/constant/app_images.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

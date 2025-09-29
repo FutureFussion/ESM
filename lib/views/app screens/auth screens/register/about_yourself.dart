@@ -1,5 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dotted_border/dotted_border.dart';
-import 'package:european_single_marriage/controller/auth%20controller/auth_controller.dart';
+import 'package:european_single_marriage/controller/auth_controller.dart';
 import 'package:european_single_marriage/core/common/custam_container.dart';
 import 'package:european_single_marriage/core/common/custom_text.dart';
 import 'package:european_single_marriage/core/common/custom_textfield.dart';
@@ -57,7 +59,6 @@ class AboutYourself extends StatelessWidget {
                       ),
                       DottedBorderBox(onUploadPressed: () {}),
                       SizedBox(height: context.screenHeight * 0.1),
-
                       Obx(
                         () => MainButton(
                           title: "Complete Registration",
@@ -72,92 +73,94 @@ class AboutYourself extends StatelessWidget {
                                 );
                                 return;
                               }
-
-                              // ✅ Save in Firestore
-                              await controller.saveAboutYourself();
-
-                              // ✅ Show Success Dialog
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    contentPadding: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: AppSizes.paddingSH,
-                                            vertical: AppSizes.paddingSV,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFFFFC690),
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(16),
-                                              topRight: Radius.circular(16),
+                              bool success =
+                                  await controller.saveAboutYourself();
+                              if (success) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      contentPadding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: AppSizes.paddingSH,
+                                              vertical: AppSizes.paddingSV,
                                             ),
-                                          ),
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: CustomText(
-                                              title: "Registration Success",
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                        AppSizes.spaceBtwItems.heightBox,
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: AppSizes.md,
-                                            vertical: AppSizes.paddingSV,
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Icon(
-                                                Icons.thumb_up_alt_outlined,
-                                                color: AppColors.primaryColor,
-                                                size: 60,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFFFFC690),
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(16),
+                                                topRight: Radius.circular(16),
                                               ),
-                                              AppSizes.sm.heightBox,
-                                              CustomText(
-                                                title: "Success",
-                                                fontSize: 22,
+                                            ),
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: CustomText(
+                                                title: "Registration Success",
+                                                fontSize: 16,
                                                 fontWeight: FontWeight.w500,
                                               ),
-                                              AppSizes.xs.heightBox,
-                                              CustomText(
-                                                title:
-                                                    "Your registration has been completed successfully. Please login to your app to see better matches.",
-                                                color: AppColors.lightsubblack,
-                                                textAlign: TextAlign.center,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              AppSizes
-                                                  .spaceBtwSections
-                                                  .heightBox,
-                                              MainButton(
-                                                title: "Go To Home",
-                                                fontSize: 14,
-                                                onPressed: () {
-                                                  Get.offAllNamed(
-                                                    AppRoutes.dashboardScreen,
-                                                  );
-                                                },
-                                              ),
-                                              AppSizes.spaceBtwItems.heightBox,
-                                            ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
+                                          AppSizes.spaceBtwItems.heightBox,
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: AppSizes.md,
+                                              vertical: AppSizes.paddingSV,
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Icon(
+                                                  Icons.thumb_up_alt_outlined,
+                                                  color: AppColors.primaryColor,
+                                                  size: 60,
+                                                ),
+                                                AppSizes.sm.heightBox,
+                                                CustomText(
+                                                  title: "Success",
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                AppSizes.xs.heightBox,
+                                                CustomText(
+                                                  title:
+                                                      "Your registration has been completed successfully. Please login to your app to see better matches.",
+                                                  color:
+                                                      AppColors.lightsubblack,
+                                                  textAlign: TextAlign.center,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                AppSizes
+                                                    .spaceBtwSections
+                                                    .heightBox,
+                                                MainButton(
+                                                  title: "Go To Home",
+                                                  fontSize: 14,
+                                                  onPressed: () {
+                                                    Get.offAllNamed(
+                                                      AppRoutes.dashboardScreen,
+                                                    );
+                                                  },
+                                                ),
+                                                AppSizes
+                                                    .spaceBtwItems
+                                                    .heightBox,
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
                             }
                           },
                         ),

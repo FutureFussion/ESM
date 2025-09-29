@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'dart:developer';
 import 'dart:io';
 
@@ -266,40 +268,9 @@ class AuthController extends GetxController with NetworkAwareController {
         'id': id,
         'name': name,
         'email': email,
-        // 'mobileNo': mobileNo,
         'profileStep': 0,
         'profileCompletion': 0,
         'createdAt': FieldValue.serverTimestamp(),
-
-        // // Basic Details
-        // 'age': agelCtrl.value.text.trim(),
-        // 'dob': doblCtrl.value.text.trim(),
-        // 'gender': selectedGender.value,
-        // 'maritalStatus': maritalStatus.value,
-        // 'numberOfChildren': numberOfChildren.value,
-        // 'isChildrenLivingWithYou': isChildrenLivingWithYou.value,
-        // 'height': height.value,
-
-        // // Family Details
-        // 'familyStatus': familyStatus.value,
-        // 'familyType': familyType.value,
-        // 'familyValues': familyValueslCtrl.value.text.trim(),
-        // 'aboutYourself': aboutYourselflCtrl.value.text.trim(),
-
-        // // Religion Details
-        // 'religion': selectedReligion.value,
-        // 'caste': selectedCaste.value,
-        // 'subCaste': selectedSubCaste.value,
-        // 'willingToMarryOtherCaste': willingToMarryOtherCaste.value,
-
-        // // Professional Details
-        // 'education': education.value,
-        // 'employedIn': employedIn.value,
-        // 'occupation': occupation.value,
-        // 'annualIncome': annualIncome.value,
-        // 'workLocation': workLocation.value,
-        // 'state': selectedState.value,
-        // 'city': selectedCity.value,
       };
 
       await firebaseServices.addDataToFirestore(
@@ -321,7 +292,7 @@ class AuthController extends GetxController with NetworkAwareController {
         // Utils.snackBar("Success", "Welcome, ${user.email}!", AppColors.green);
         Get.toNamed(AppRoutes.basicDetails);
         // Get.offAllNamed(RouteName.selectCategoriesPage);
-        // clearController();
+        clearController();
       } else {
         Utils.snackBar("Error", "User data not found", AppColors.red);
       }
@@ -373,6 +344,7 @@ class AuthController extends GetxController with NetworkAwareController {
 
       Utils.snackBar("Success", "Step $step saved!", AppColors.green);
       setRxRequestStatus(Status.COMPLETED);
+      clearController();
     } catch (e) {
       errorMessage.value = e.toString();
       setRxRequestStatus(Status.ERROR);
@@ -430,12 +402,112 @@ class AuthController extends GetxController with NetworkAwareController {
     Get.toNamed(AppRoutes.aboutYourself);
   }
 
-  Future<void> saveAboutYourself() async {
-    await updateProfileStep(5, {
-      'aboutYourself': aboutYourselflCtrl.value.text.trim(),
-    });
-    // Get.offAllNamed(AppRoutes.home);
+  Future<bool> saveAboutYourself() async {
+    if (!await checkConnection(
+      statusController: rxRequestStatus,
+      errorController: errorMessage,
+    )) {
+      return true;
+    }
+
+    try {
+      loading.value = true;
+      setRxRequestStatus(Status.LOADING);
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      // ✅ Convert picked images to Base64
+      List<String> base64Images = [];
+      for (int i = 0; i < pickedImages.length; i++) {
+        final base64Image = await firebaseServices.convertImageToBase64(
+          pickedImages[i],
+        );
+        base64Images.add(base64Image);
+      }
+
+      // ✅ Save only profileImages in Realtime DB
+      await firebaseServices.saveToRealtimeDB(
+        path: "users/${user.uid}/profileImages",
+        data: base64Images,
+      );
+
+      // ✅ Save about yourself + meta data in Firestore
+      await firebaseServices.updateDataToFirestore(
+        collection: AppCollections.users,
+        id: user.uid,
+        data: {
+          "aboutYourself": aboutYourselflCtrl.value.text.trim(),
+          "profileStep": 5,
+          "profileCompletion": 100,
+          "profileImages": base64Images,
+          "updatedAt": FieldValue.serverTimestamp(),
+        },
+      );
+
+      Utils.snackBar("Success", "Profile completed!", AppColors.green);
+      setRxRequestStatus(Status.COMPLETED);
+      clearController();
+      return true;
+    } catch (e) {
+      errorMessage.value = e.toString();
+      log("Error : $e");
+      setRxRequestStatus(Status.ERROR);
+      Utils.snackBar("Error", e.toString(), AppColors.red);
+      return false;
+    } finally {
+      loading.value = false;
+    }
   }
+
+  // Future<void> saveAboutYourself() async {
+  //   if (!await checkConnection(
+  //     statusController: rxRequestStatus,
+  //     errorController: errorMessage,
+  //   )) {
+  //     return;
+  //   }
+
+  //   try {
+  //     loading.value = true;
+  //     setRxRequestStatus(Status.LOADING);
+
+  //     final user = FirebaseAuth.instance.currentUser;
+  //     if (user == null) throw Exception("User not logged in");
+
+  //     // ✅ Upload multiple images to Firebase Storage
+  //     List<String> imageUrls = [];
+  //     for (int i = 0; i < pickedImages.length; i++) {
+  //       final url = await firebaseServices.uploadProfileImage(
+  //         "${user.uid}_$i",
+  //         pickedImages[i],
+  //       );
+  //       imageUrls.add(url);
+  //     }
+
+  //     // ✅ Save step 5 data + image URLs in Firestore
+  //     await firebaseServices.updateDataToFirestore(
+  //       collection: AppCollections.users,
+  //       id: user.uid,
+  //       data: {
+  //         'profileStep': 5,
+  //         'profileCompletion': 100,
+  //         'aboutYourself': aboutYourselflCtrl.value.text.trim(),
+  //         'profileImages': imageUrls,
+  //         'updatedAt': FieldValue.serverTimestamp(),
+  //       },
+  //     );
+
+  //     Utils.snackBar("Success", "Profile completed!", AppColors.green);
+  //     setRxRequestStatus(Status.COMPLETED);
+  //   } catch (e) {
+  //     errorMessage.value = e.toString();
+  //     setRxRequestStatus(Status.ERROR);
+  //     Utils.snackBar("Error", e.toString(), AppColors.red);
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // }
 
   /// --- Login  --- ///
   Future<void> login() async {
@@ -475,7 +547,7 @@ class AuthController extends GetxController with NetworkAwareController {
 
         Utils.snackBar("Success", "Welcome, ${user.email}!", AppColors.green);
         Get.offAllNamed(AppRoutes.dashboardScreen);
-        // clearController();
+        clearController();
         setRxRequestStatus(Status.COMPLETED);
       } else {
         Utils.snackBar("Error", "User data not found.", AppColors.red);
@@ -490,5 +562,69 @@ class AuthController extends GetxController with NetworkAwareController {
     } finally {
       loading.value = false;
     }
+  }
+
+  /// --- Logout  --- ///
+  Future<void> logout() async {
+    if (!await checkConnection(
+      statusController: rxRequestStatus,
+      errorController: errorMessage,
+    )) {
+      return;
+    }
+    try {
+      await firebaseServices.logoutUser();
+      await AppStorage.clearSharedData();
+      Get.offAllNamed(AppRoutes.loginScreen);
+      Utils.snackBar(
+        "Logged Out",
+        "You have successfully logged out.",
+        AppColors.green,
+      );
+    } catch (error) {
+      Utils.snackBar("Error", error.toString(), AppColors.red);
+    }
+  }
+
+  /// --- Clear Fields  ---
+  void clearController() {
+    loginUserEmail.value.clear();
+    loginPassword.value.clear();
+
+    /// --- Clear Register Fields ---
+    fullName.value.clear();
+    mobileNumber.value.clear();
+    registerPassword.value.clear();
+    agelCtrl.value.clear();
+    doblCtrl.value.clear();
+    emailCtrl.value.clear();
+    familyValueslCtrl.value.clear();
+    aboutYourselflCtrl.value.clear();
+    casteCtrl.value.clear();
+    subCasteCtrl.value.clear();
+
+    // Reset selections
+    selectedGender.value = '';
+    maritalStatus.value = '';
+    numberOfChildren.value = '';
+    isChildrenLivingWithYou.value = '';
+    height.value = '';
+    familyStatus.value = '';
+    familyType.value = '';
+    anyDisability.value = '';
+    selectedReligion.value = '';
+    selectedCaste.value = '';
+    selectedSubCaste.value = '';
+    willingToMarryOtherCaste.value = false;
+    education.value = '';
+    employedIn.value = '';
+    occupation.value = '';
+    annualIncome.value = '';
+    workLocation.value = '';
+    selectedState.value = '';
+    selectedCity.value = '';
+    pickedImages.clear();
+
+    update();
   }
 }

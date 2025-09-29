@@ -2,62 +2,170 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   String? id;
-  String? imageUrl;
   String? name;
   String? email;
-  String? phoneNo;
-  String? password;
-  String? profile;
-  String? address;
-  String? country;
+  String? mobileNo;
+  String? age;
+  String? dob;
+  String? gender;
+
+  // Religion
+  String? religion;
+  String? caste;
+  String? subCaste;
+  bool? willingToMarryOtherCaste;
+
+  // Personal
+  String? maritalStatus;
+  String? numberOfChildren;
+  String? isChildrenLivingWithYou;
+  String? height;
+  String? familyStatus;
+  String? familyType;
+  String? familyValues;
+  String? anyDisability;
+
+  // Professional
+  String? education;
+  String? employedIn;
+  String? occupation;
+  String? annualIncome;
+  String? workLocation;
   String? state;
   String? city;
+
+  // About Yourself
+  String? aboutYourself;
+  List<String>? profileImages;
+
+  // Meta
+  int? profileStep;
+  int? profileCompletion;
   Timestamp? createdAt;
+  Timestamp? updatedAt;
 
   UserModel({
     this.id,
-    this.imageUrl,
     this.name,
     this.email,
-    this.phoneNo,
-    this.password,
-    this.profile,
-    this.address,
-    this.country,
+    this.mobileNo,
+    this.age,
+    this.dob,
+    this.gender,
+    this.religion,
+    this.caste,
+    this.subCaste,
+    this.willingToMarryOtherCaste,
+    this.maritalStatus,
+    this.numberOfChildren,
+    this.isChildrenLivingWithYou,
+    this.height,
+    this.familyStatus,
+    this.familyType,
+    this.familyValues,
+    this.anyDisability,
+    this.education,
+    this.employedIn,
+    this.occupation,
+    this.annualIncome,
+    this.workLocation,
     this.state,
     this.city,
+    this.aboutYourself,
+    this.profileImages,
+    this.profileStep,
+    this.profileCompletion,
     this.createdAt,
+    this.updatedAt,
   });
 
+  /// ✅ From JSON
   UserModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    imageUrl = json['imageUrl'];
     name = json['name'];
     email = json['email'];
-    phoneNo = json['phoneNo'];
-    password = json['password'];
-    profile = json['profile'];
-    address = json['address'];
-    country = json['country'];
+    mobileNo = json['mobileNo'];
+    age = json['age'];
+    dob = json['dob'];
+    gender = json['gender'];
+
+    religion = json['religion'];
+    caste = json['caste'];
+    subCaste = json['subCaste'];
+    willingToMarryOtherCaste = json['willingToMarryOtherCaste'];
+
+    maritalStatus = json['maritalStatus'];
+    numberOfChildren = json['numberOfChildren'];
+    isChildrenLivingWithYou = json['isChildrenLivingWithYou'];
+    height = json['height'];
+    familyStatus = json['familyStatus'];
+    familyType = json['familyType'];
+    familyValues = json['familyValues'];
+    anyDisability = json['anyDisability'];
+
+    education = json['education'];
+    employedIn = json['employedIn'];
+    occupation = json['occupation'];
+    annualIncome = json['annualIncome'];
+    workLocation = json['workLocation'];
     state = json['state'];
     city = json['city'];
+
+    aboutYourself = json['aboutYourself'];
+    profileImages =
+        json['profileImages'] != null
+            ? List<String>.from(json['profileImages'])
+            : [];
+
+    profileStep = json['profileStep'];
+    profileCompletion = json['profileCompletion'];
+
     createdAt = json['createdAt'] is Timestamp ? json['createdAt'] : null;
+    updatedAt = json['updatedAt'] is Timestamp ? json['updatedAt'] : null;
   }
 
+  /// ✅ To JSON
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
+    final Map<String, dynamic> data = {};
     data['id'] = id;
-    data['imageUrl'] = imageUrl;
     data['name'] = name;
     data['email'] = email;
-    data['phoneNo'] = phoneNo;
-    data['password'] = password;
-    data['profile'] = profile;
-    data['address'] = address;
-    data['country'] = country;
+    data['mobileNo'] = mobileNo;
+    data['age'] = age;
+    data['dob'] = dob;
+    data['gender'] = gender;
+
+    data['religion'] = religion;
+    data['caste'] = caste;
+    data['subCaste'] = subCaste;
+    data['willingToMarryOtherCaste'] = willingToMarryOtherCaste;
+
+    data['maritalStatus'] = maritalStatus;
+    data['numberOfChildren'] = numberOfChildren;
+    data['isChildrenLivingWithYou'] = isChildrenLivingWithYou;
+    data['height'] = height;
+    data['familyStatus'] = familyStatus;
+    data['familyType'] = familyType;
+    data['familyValues'] = familyValues;
+    data['anyDisability'] = anyDisability;
+
+    data['education'] = education;
+    data['employedIn'] = employedIn;
+    data['occupation'] = occupation;
+    data['annualIncome'] = annualIncome;
+    data['workLocation'] = workLocation;
     data['state'] = state;
     data['city'] = city;
-    data['createdAt'] = createdAt?.toDate().toIso8601String();
+
+    data['aboutYourself'] = aboutYourself;
+    data['profileImages'] = profileImages;
+
+    data['profileStep'] = profileStep;
+    data['profileCompletion'] = profileCompletion;
+
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+
     return data;
   }
 

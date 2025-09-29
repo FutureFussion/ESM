@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:european_single_marriage/core/utils/constant/app_collections.dart';
@@ -9,14 +9,14 @@ import 'package:european_single_marriage/core/utils/constant/app_colors.dart';
 import 'package:european_single_marriage/core/utils/snackBar/snackbar_utils.dart';
 import 'package:european_single_marriage/model/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart' hide Query;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
-
 class FirebaseService extends GetxService {
   final _db = FirebaseFirestore.instance;
+  final DatabaseReference db = FirebaseDatabase.instance.ref();
 
   /// --- SignUp With Emial ---
   Future<String?> signUpWithEmailAndPassword({
@@ -259,19 +259,21 @@ class FirebaseService extends GetxService {
     await userRef.delete();
   }
 
-  Future<String> uploadProfileImage(String userId, File file) async {
+  /// --- Single Profile Image ---
+  // Future<String> uploadProfileImage(String userId, File file) async {
+  //   final ref = FirebaseStorage.instance.ref().child(
+  //     'profile_images/$userId.jpg',
+  //   );
+  //   await ref.putFile(file);
+  //   return await ref.getDownloadURL();
+  // }
+
+  /// --- Multiple Profile Image ---
+  Future<String> uploadProfileImage(String fileName, File file) async {
     final ref = FirebaseStorage.instance.ref().child(
-      'profile_images/$userId.jpg',
+      "profile_images/$fileName.jpg",
     );
     await ref.putFile(file);
-    return await ref.getDownloadURL();
-  }
-
-  Future<String> uploadWebImage(String userId, Uint8List bytes) async {
-    final ref = FirebaseStorage.instance.ref().child(
-      'profile_images/$userId.jpg',
-    );
-    await ref.putData(bytes);
     return await ref.getDownloadURL();
   }
 
@@ -286,65 +288,17 @@ class FirebaseService extends GetxService {
     }
   }
 
-  Future<void> incrementFieldInFirestore({
-    required String collection,
-    required Map<String, dynamic> docIdByField,
-    required String field,
-    required int incrementBy,
+  // RealTime Database
+  Future<void> saveToRealtimeDB({
+    required String path,
+    required dynamic data,
   }) async {
-    final query =
-        await _db
-            .collection(collection)
-            .where(
-              docIdByField.keys.first,
-              isEqualTo: docIdByField.values.first,
-            )
-            .limit(1)
-            .get();
-
-    if (query.docs.isNotEmpty) {
-      await query.docs.first.reference.update({
-        field: FieldValue.increment(incrementBy),
-      });
-    }
+    await db.child(path).set(data);
   }
 
-  Future<List<Map<String, dynamic>>> getUsersByField({
-    required String collection,
-    required String field,
-    required String value,
-  }) async {
-    final snapshot =
-        await FirebaseFirestore.instance
-            .collection(collection)
-            .where(field, isEqualTo: value)
-            .get();
-
-    return snapshot.docs.map((doc) => doc.data()).toList();
-  }
-
-  Future<List<T>> getListWhere<T>({
-    required String collection,
-    required T Function(Map<String, dynamic>) fromJson,
-    List<Map<String, dynamic>> filters = const [],
-  }) async {
-    try {
-      Query query = _db.collection(collection);
-
-      for (var filter in filters) {
-        query = query.where(filter['field'], isEqualTo: filter['isEqualTo']);
-      }
-
-      final snapshot = await query.get();
-
-      if (snapshot.docs.isEmpty) return [];
-
-      return snapshot.docs
-          .map((doc) => fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      debugPrint("Error fetching list with filters: $e");
-      throw Exception("Error getting data: $e");
-    }
+  /// Convert image to Base64
+  Future<String> convertImageToBase64(File file) async {
+    final bytes = await file.readAsBytes();
+    return base64Encode(bytes);
   }
 }
