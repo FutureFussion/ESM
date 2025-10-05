@@ -144,10 +144,20 @@ class FirebaseService extends GetxService {
       } else {
         CollectionReference ref = _db.collection(collection);
         Query query = ref;
-
         if (where != null) {
           for (var entry in where.entries) {
-            query = query.where(entry.key, isEqualTo: entry.value);
+            final key = entry.key;
+            final value = entry.value;
+
+            if (value is Map && value.containsKey("notEqual")) {
+              query = query.where(key, isNotEqualTo: value["notEqual"]);
+            } else if (value is Map && value.containsKey("greaterThan")) {
+              query = query.where(key, isGreaterThan: value["greaterThan"]);
+            } else if (value is Map && value.containsKey("lessThan")) {
+              query = query.where(key, isLessThan: value["lessThan"]);
+            } else {
+              query = query.where(key, isEqualTo: value);
+            }
           }
         }
 
@@ -221,6 +231,19 @@ class FirebaseService extends GetxService {
         'Something went wrong. Please try again!',
         AppColors.red,
       );
+    }
+  }
+
+  /// --- Set Status (online/offline) ---
+  Future<void> setUserStatus(String userId, String status) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(AppCollections.users)
+          .doc(userId)
+          .update({"status": status, "lastSeen": FieldValue.serverTimestamp()});
+      log("✅ Status updated: $status");
+    } catch (e) {
+      log("❌ Failed to update status: $e");
     }
   }
 
@@ -302,5 +325,19 @@ class FirebaseService extends GetxService {
   Future<String> convertImageToBase64(File file) async {
     final bytes = await file.readAsBytes();
     return base64Encode(bytes);
+  }
+
+  Future<List<Map<String, dynamic>>> getUsersByField({
+    required String collection,
+    required String field,
+    required String value,
+  }) async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection(collection)
+            .where(field, isEqualTo: value)
+            .get();
+
+    return snapshot.docs.map((doc) => doc.data()).toList();
   }
 }

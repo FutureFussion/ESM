@@ -7,6 +7,7 @@ import 'package:european_single_marriage/views/app%20screens/auth%20screens/regi
 import 'package:european_single_marriage/views/app%20screens/auth%20screens/register/register.dart';
 import 'package:european_single_marriage/views/app%20screens/auth%20screens/register/religion_details.dart';
 import 'package:european_single_marriage/views/app%20screens/auth%20screens/splash_screen.dart';
+import 'package:european_single_marriage/views/app%20screens/dashboard%20screens/add_friend_page.dart';
 import 'package:european_single_marriage/views/app%20screens/dashboard%20screens/chat_text_page.dart';
 import 'package:european_single_marriage/views/app%20screens/dashboard%20screens/dashboard.dart';
 import 'package:european_single_marriage/views/app%20screens/dashboard%20screens/edit_profile.dart';
@@ -29,8 +30,9 @@ class AppRoutes {
   static const String matchesDetails = "/MatchesDetails";
   static const String editProfile = "/EditProfile";
   static const String membership = "/Membership";
-  static const String messageTextPage = "/MessageTextPage";
+  // static const String messageTextPage = "/MessageTextPage";
   static const String helpSupportScreen = "/HelpSupportScreen";
+  static const String addFriendPage = "/addFriendPage";
 
   static Map<String, WidgetBuilder> get routes => {
     splashScreen: (_) => SplashScreen(),
@@ -46,7 +48,8 @@ class AppRoutes {
     matchesDetails: (_) => MatchesDetails(),
     editProfile: (_) => EditProfile(),
     membership: (_) => Membership(),
-    messageTextPage: (_) => MessageTextPage(),
+    // messageTextPage: (_) => MessageTextPage(),
     helpSupportScreen: (_) => HelpSupportScreen(),
+    addFriendPage: (_) => AddFriendPage(),
   };
 }

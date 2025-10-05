@@ -1,28 +1,39 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:io';
+
 import 'package:european_single_marriage/controller/home%20controller/edit_profile_controller.dart';
 import 'package:european_single_marriage/core/common/custam_container.dart';
 import 'package:european_single_marriage/core/common/custom_drop_down.dart';
 import 'package:european_single_marriage/core/common/custom_text.dart';
-import 'package:european_single_marriage/core/common/custom_textfield.dart';
 import 'package:european_single_marriage/core/common/main_button.dart';
 import 'package:european_single_marriage/core/extensions/size_box_extension.dart';
 import 'package:european_single_marriage/core/utils/constant/app_colors.dart';
 import 'package:european_single_marriage/core/utils/constant/app_images.dart';
 import 'package:european_single_marriage/core/utils/constant/app_sizes.dart';
 import 'package:flutter/material.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-class EditProfile extends StatelessWidget {
+class EditProfile extends StatefulWidget {
+
+  const EditProfile({super.key});
+
+  @override
+  State<EditProfile> createState() => _EditProfileState();
+}
+
+class _EditProfileState extends State<EditProfile> {
   File? pickedFile;
   ImagePicker imagePicker = ImagePicker();
-  final EditProfileController controller = Get.put(EditProfileController());
-  EditProfile({super.key});
+  final controller = Get.put(EditProfileController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
+      body: 
+      SingleChildScrollView(
         child: Column(
           children: [
             Container(
@@ -54,19 +65,27 @@ class EditProfile extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 50,
                             backgroundImage:
-                                (controller.isProfilePic.value &&
+                                controller.isProfilePic.value &&
                                         controller
                                             .profilePicPath
                                             .value
-                                            .isNotEmpty)
+                                            .isNotEmpty
                                     ? FileImage(
                                       File(controller.profilePicPath.value),
                                     )
-                                    : AssetImage(AppImages.imageURL)
-                                        as ImageProvider,
+                                    : (controller
+                                            .profileImageUrl
+                                            .value
+                                            .isNotEmpty
+                                        ? NetworkImage(
+                                          controller.profileImageUrl.value,
+                                        )
+                                        : AssetImage(AppImages.imageURL)
+                                            as ImageProvider),
                           ),
                         ),
                       ),
+
                       AppSizes.spaceBtwItems.heightBox,
                     ],
                   ),
@@ -94,13 +113,56 @@ class EditProfile extends StatelessWidget {
                         ),
                         AppSizes.spaceBtwItems.heightBox,
 
-                        editField(title: "Full Name", hintText: "Teja Khan"),
-                        editField(title: "Number", hintText: "03436661888"),
+                        editField(
+                          title: "Full Name",
+                          hintText: "Teja Khan",
+                          controller: controller.fullName.value,
+                          validator:
+                              MultiValidator([
+                                RequiredValidator(
+                                  errorText: "Please enter full name",
+                                ),
+                                // EmailValidator(
+                                //   errorText: "Please enter a valid email",
+                                // ),
+                              ]).call,
+                        ),
+                        editField(
+                          title: "Number",
+                          hintText: "03436661888",
+                          controller: controller.mobileNo.value,
+                          validator:
+                              MultiValidator([
+                                RequiredValidator(
+                                  errorText: "Please enter your mobile number",
+                                ),
+                              ]).call,
+                        ),
                         editField(
                           title: "Email",
                           hintText: "teja124@gmail.com",
+                          controller: controller.email.value,
+                          validator:
+                              MultiValidator([
+                                RequiredValidator(
+                                  errorText: "Please enter your email",
+                                ),
+                                EmailValidator(
+                                  errorText: "Please enter a valid email",
+                                ),
+                              ]).call,
                         ),
-                        editField(title: "Age", hintText: "28"),
+                        editField(
+                          title: "Age",
+                          hintText: "28",
+                          controller: controller.age.value,
+                          validator:
+                              MultiValidator([
+                                RequiredValidator(
+                                  errorText: "Please enter your age",
+                                ),
+                              ]).call,
+                        ),
                       ],
                     ),
                   ),
@@ -123,13 +185,15 @@ class EditProfile extends StatelessWidget {
                           () => CustomDropdown(
                             color: AppColors.white,
                             borders: false,
-                            hint: "Hindu",
+                            hint: "Select Religion",
                             title: "Religion",
-                            items: [],
-                            value: controller.selectedReligion.value,
-                            onChanged: (val) {
-                              (value) => controller.selectedReligion(val!);
-                            },
+                            items: controller.religionOptions,
+                            value:
+                                controller.selectedReligion.value.isNotEmpty
+                                    ? controller.selectedReligion.value
+                                    : '',
+                            onChanged:
+                                (val) => controller.updateReligion(val ?? ''),
                           ),
                         ),
 
@@ -178,15 +242,18 @@ class EditProfile extends StatelessWidget {
                         AppSizes.spaceBtwItems.heightBox,
                         Obx(
                           () => CustomDropdown(
-                            hint: "No",
+                            hint: "Select Marital Status",
                             title: "Marital Status",
                             color: AppColors.white,
                             borders: false,
-                            items: [],
-                            value: controller.materialStatus.value,
-                            onChanged: (val) {
-                              (val) => controller.materialStatus(val!);
-                            },
+                            items: controller.maritalStatusOptions,
+                            value:
+                                controller.materialStatus.value.isNotEmpty
+                                    ? controller.materialStatus.value
+                                    : '',
+                            onChanged:
+                                (val) =>
+                                    controller.materialStatus.value = val ?? '',
                           ),
                         ),
                         AppSizes.spaceBtwItems.heightBox,
@@ -205,7 +272,12 @@ class EditProfile extends StatelessWidget {
     );
   }
 
-  Widget editField({required String title, required String hintText}) {
+  Widget editField({
+    required String title,
+    required String hintText,
+    TextEditingController? controller,
+    String? Function(String?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -219,7 +291,9 @@ class EditProfile extends StatelessWidget {
           color: AppColors.white,
           cir: 12,
           padding: EdgeInsets.symmetric(horizontal: 20),
-          child: TextField(
+          child: TextFormField(
+            controller: controller,
+            validator: validator,
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: hintText,

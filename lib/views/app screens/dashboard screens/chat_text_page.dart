@@ -1,40 +1,230 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:european_single_marriage/controller/home%20controller/message_text_controller.dart';
 import 'package:european_single_marriage/core/common/custam_container.dart';
 import 'package:european_single_marriage/core/common/custom_svg.dart';
 import 'package:european_single_marriage/core/common/custom_text.dart';
 import 'package:european_single_marriage/core/extensions/size_box_extension.dart';
+import 'package:european_single_marriage/core/utils/constant/app_collections.dart';
 import 'package:european_single_marriage/core/utils/constant/app_colors.dart';
 import 'package:european_single_marriage/core/utils/constant/app_images.dart';
 import 'package:european_single_marriage/core/utils/constant/app_sizes.dart';
+import 'package:european_single_marriage/model/message_text_model.dart';
 import 'package:european_single_marriage/views/screens%20widgets/home%20Widget/Message%20Text%20Widget/more_option.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
-class MessageTextPage extends StatelessWidget {
-  final MessageTextController controller = Get.put(MessageTextController());
+class MessageTextPage extends StatefulWidget {
+  final String? receiverId;
+  final String? chatId;
+  final String userName;
+  final String userImage;
 
-  MessageTextPage({super.key});
+  const MessageTextPage({
+    super.key,
+    this.chatId,
+    required this.userName,
+    required this.userImage,
+    this.receiverId,
+  });
+
+  @override
+  State<MessageTextPage> createState() => _MessageTextPageState();
+}
+
+class _MessageTextPageState extends State<MessageTextPage> {
+  final messageCtrl = Get.put(MessageController());
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      messageCtrl.markMessagesAsRead(widget.chatId!, widget.receiverId!);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
-          messageAppBar(context),
-          Expanded(child: Obx(() => chatMessages(context))),
-          messageInput((context)),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.paddingSH - 20,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(color: AppColors.appBarColor),
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: CustomSvgImage(
+                          image: "assets/svg/arrowBackward.svg",
+                          width: 16,
+                          height: 16,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundImage:
+                            (widget.userImage.isNotEmpty)
+                                ? NetworkImage(widget.userImage)
+                                : AssetImage(AppImages.imageURL)
+                                    as ImageProvider,
+
+                        // AssetImage(AppImages.imageURL),
+                      ),
+                    ],
+                  ),
+
+                  AppSizes.sm.widthBox,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          title: widget.userName,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 4),
+                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                          stream:
+                              FirebaseFirestore.instance
+                                  .collection(AppCollections.users)
+                                  .doc(widget.receiverId)
+                                  .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || !snapshot.data!.exists) {
+                              return CustomText(
+                                title: "Loading...",
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              );
+                            }
+
+                            final userData = snapshot.data!.data();
+                            final status = userData?["status"] ?? "offline";
+
+                            return CustomText(
+                              title: status == "online" ? "Online" : "Offline",
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  MoreOptionsPopupMenu(),
+                  // Row(
+                  //   mainAxisSize: MainAxisSize.min,
+                  //   children: [
+                  //     CustomSvgImage(image: AppImages.vedioCall),
+                  //     AppSizes.sm.widthBox,
+                  //     CustomSvgImage(image: AppImages.call),
+                  //     AppSizes.sm.widthBox,
+
+                  //   ],
+                  // ),
+                ],
+              ),
+            ),
+          ),
+          // messageAppBar(context),
+          // message list
+          Expanded(child: chatMessages(context)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 70,
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.orange, width: 1.0),
+              ),
+            ),
+            child: Row(
+              children: [
+                AppSizes.spaceBtwItems.widthBox,
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Color(0xFFD3B174)),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: messageCtrl.chatTypeController,
+                            focusNode: messageCtrl.focusNode,
+                            decoration: InputDecoration(
+                              prefixIcon: CustomSvgImage(
+                                image: "assets/svg/link.svg",
+                                height: 22,
+                                width: 22,
+                              ),
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: 22,
+                                minHeight: 22,
+                              ),
+                              hintText: "Type your message",
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: CustomSvgImage(image: "assets/svg/Emoji.svg"),
+                          onPressed: () {
+                            messageCtrl.isemojiVisible.value =
+                                !messageCtrl.isemojiVisible.value;
+                            messageCtrl.focusNode.unfocus();
+                            messageCtrl.focusNode.canRequestFocus = true;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                AppSizes.spaceBtwItems.widthBox,
+                CustomContainer(
+                  // fun: () => messageCtrl.sendMessage(),
+                  fun:
+                      () => messageCtrl.sendMessage(
+                        receiverId: widget.receiverId!,
+                        receiverName: widget.userName,
+                        receiverImage: widget.userImage,
+                      ),
+                  padding: EdgeInsets.all(10),
+                  color: Color(0xFFD3B174),
+                  shape: BoxShape.circle,
+
+                  child: SvgPicture.asset("assets/svg/send.svg"),
+                ),
+              ],
+            ),
+          ),
           Obx(
             () => Offstage(
-              offstage: !controller.isemojiVisible.value,
+              offstage: !messageCtrl.isemojiVisible.value,
               child: SizedBox(
                 height: 250,
                 child: EmojiPicker(
                   onEmojiSelected: (category, emojy) {
-                    controller.chatTypeController.text =
-                        controller.chatTypeController.text + emojy.emoji;
+                    messageCtrl.chatTypeController.text =
+                        messageCtrl.chatTypeController.text + emojy.emoji;
                   },
                   onBackspacePressed: () {},
                   config: Config(
@@ -73,138 +263,88 @@ class MessageTextPage extends StatelessWidget {
     );
   }
 
-  Widget messageAppBar(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSizes.paddingSH - 20,
-        vertical: 8,
-      ),
-      decoration: BoxDecoration(color: AppColors.appBarColor),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: CustomSvgImage(
-                    image: "assets/svg/arrowBackward.svg",
-                    width: 16,
-                    height: 16,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-
-                CircleAvatar(
-                  radius: 25,
-                  backgroundImage: AssetImage(AppImages.imageURL),
-                ),
-              ],
-            ),
-
-            AppSizes.sm.widthBox,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    title: 'Mike Thompson',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4),
-                  CustomText(
-                    title: 'Online',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ],
-              ),
-            ),
-
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomSvgImage(image: AppImages.vedioCall),
-                AppSizes.sm.widthBox,
-                CustomSvgImage(image: AppImages.call),
-                AppSizes.sm.widthBox,
-                MoreOptionsPopupMenu(),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget chatMessages(BuildContext context) {
-    return ListView.builder(
-      controller: controller.scrollController,
-      padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingSH),
-      itemCount: controller.messages.length,
-      itemBuilder: (context, index) {
-        final message = controller.messages[index];
-        final isSender = message.isSender;
+    final senderId = FirebaseAuth.instance.currentUser!.uid;
 
-        String? dayLabel;
-        if (_shouldShowDateLabel(index)) {
-          dayLabel = _formatDateLabel(message.day!);
+    return StreamBuilder<List<ChatMessage>>(
+      stream: messageCtrl.getMessages(widget.chatId!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No messages yet..."));
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            AppSizes.sm.heightBox,
-            if (dayLabel != null) ...[
-              CustomContainer(
-                width: 85,
-                color: AppColors.appBarColor,
-                padding: EdgeInsets.all(10),
-                cir: 20,
-                child: CustomText(
-                  title: dayLabel,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              AppSizes.xs.heightBox,
-            ],
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSizes.sm),
-              child: Row(
-                mainAxisAlignment:
-                    isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
-                children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment:
-                          isSender
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                      children: [
-                        messageBubble(message.message, context, isSender),
-                        4.heightBox,
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+        final messages = snapshot.data!;
+
+        return ListView.builder(
+          controller: messageCtrl.scrollController,
+          padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingSH),
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final message = messages[index];
+            final isSender = message.senderId == senderId;
+
+            String? dayLabel;
+            if (_shouldShowDateLabel(index, messages)) {
+              dayLabel = _formatDateLabel(message.timestamp!);
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                AppSizes.sm.heightBox,
+                if (dayLabel != null) ...[
+                  CustomContainer(
+                    width: 85,
+                    color: AppColors.appBarColor,
+                    padding: EdgeInsets.all(10),
+                    cir: 20,
+                    child: CustomText(
+                      title: dayLabel,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  AppSizes.xs.heightBox,
+                ],
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSizes.sm),
+                  child: Row(
+                    mainAxisAlignment:
+                        isSender
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment:
+                              isSender
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
                           children: [
-                            CustomText(
-                              title: message.time,
-                              fontSize: 11,
-                              color: AppColors.gray1,
+                            messageBubble(message.message, context, isSender),
+                            4.heightBox,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CustomText(
+                                  title: _formatTime(message.timestamp),
+                                  fontSize: 11,
+                                  color: AppColors.gray1,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -240,82 +380,19 @@ class MessageTextPage extends StatelessWidget {
     );
   }
 
-  Widget messageInput(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      height: 70,
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.orange, width: 1.0)),
-      ),
-      child: Row(
-        children: [
-          AppSizes.spaceBtwItems.widthBox,
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Color(0xFFD3B174)),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controller.chatTypeController,
-                      focusNode: controller.focusNode,
-                      decoration: InputDecoration(
-                        prefixIcon: CustomSvgImage(
-                          image: "assets/svg/link.svg",
-                          height: 22,
-                          width: 22,
-                        ),
-                        prefixIconConstraints: const BoxConstraints(
-                          minWidth: 22,
-                          minHeight: 22,
-                        ),
-                        hintText: "Type your message",
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: CustomSvgImage(image: "assets/svg/Emoji.svg"),
-                    onPressed: () {
-                      controller.isemojiVisible.value =
-                          !controller.isemojiVisible.value;
-                      controller.focusNode.unfocus();
-                      controller.focusNode.canRequestFocus = true;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          AppSizes.spaceBtwItems.widthBox,
-          CustomContainer(
-            fun: () => controller.sendMessage(),
-            padding: EdgeInsets.all(10),
-            color: Color(0xFFD3B174),
-            shape: BoxShape.circle,
-
-            child: SvgPicture.asset("assets/svg/send.svg"),
-          ),
-        ],
-      ),
-    );
-  }
-
   bool _isSameDate(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  bool _shouldShowDateLabel(int index) {
+  bool _shouldShowDateLabel(int index, List<ChatMessage> messages) {
     if (index == 0) return true;
 
-    final current = controller.messages[index].day;
-    final previous = controller.messages[index - 1].day;
-    return !_isSameDate(current!, previous!);
+    final current = messages[index].timestamp;
+    final previous = messages[index - 1].timestamp;
+
+    if (current == null || previous == null) return false;
+
+    return !_isSameDate(current, previous);
   }
 
   String _formatDateLabel(DateTime date) {
@@ -326,5 +403,11 @@ class MessageTextPage extends StatelessWidget {
     if (_isSameDate(date, yesterday)) return "Yesterday";
 
     return "${date.day}/${date.month}/${date.year}";
+  }
+
+  String _formatTime(DateTime? date) {
+    if (date == null) return "";
+    final timeOfDay = TimeOfDay.fromDateTime(date);
+    return timeOfDay.format(Get.context!);
   }
 }

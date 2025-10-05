@@ -4,12 +4,12 @@ import 'package:european_single_marriage/core/utils/constant/app_sizes.dart';
 import 'package:flutter/material.dart';
 
 class SearchField extends StatelessWidget {
-  const SearchField({super.key});
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  const SearchField({super.key, this.controller, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    // final MatchesController controller = Get.find();
-
     return Column(
       children: [
         AppSizes.spaceBtwItems.heightBox,
@@ -27,7 +27,9 @@ class SearchField extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           child: TextField(
-            // onChanged: (value) => controller.searchQuery.value = value,
+            controller: controller,
+            onChanged: onChanged,
+
             decoration: const InputDecoration(
               hintText: "Search by criteria",
               border: InputBorder.none,

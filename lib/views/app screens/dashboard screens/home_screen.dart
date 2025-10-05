@@ -2,14 +2,34 @@ import 'package:european_single_marriage/controller/home%20controller/home_contr
 import 'package:european_single_marriage/core/common/custom_text.dart';
 import 'package:european_single_marriage/core/extensions/size_box_extension.dart';
 import 'package:european_single_marriage/core/utils/constant/app_colors.dart';
+import 'package:european_single_marriage/core/utils/constant/app_images.dart';
 import 'package:european_single_marriage/core/utils/constant/app_sizes.dart';
+import 'package:european_single_marriage/data/response/status.dart';
+import 'package:european_single_marriage/model/user_model.dart';
 import 'package:european_single_marriage/views/screens%20widgets/home%20Widget/search_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HomeScreen extends StatelessWidget {
-  final HomeController controller = Get.put(HomeController());
-  HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final homeCtrl = Get.put(HomeController());
+    final searchController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    homeCtrl.currentUser = homeCtrl.user.value;
+
+    // automatically load all lists
+    homeCtrl.fetchAllMatches();
+    homeCtrl.fetchSameCasteMatches();
+    homeCtrl.fetchNearLocationMatches();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +38,10 @@ class HomeScreen extends StatelessWidget {
 
       body: SafeArea(
         child: Obx(() {
-          final user = controller.user.value;
+          if (homeCtrl.rxRequestStatus.value == Status.LOADING) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final users = homeCtrl.users.value;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -31,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 25,
-                      backgroundImage: AssetImage(user.imageUrl),
+                      backgroundImage: AssetImage(AppImages.imageURL),
                     ),
                     AppSizes.sm.widthBox,
                     Column(
@@ -44,7 +67,7 @@ class HomeScreen extends StatelessWidget {
                           color: AppColors.grey3,
                         ),
                         CustomText(
-                          title: user.name,
+                          title: "Ijaz",
                           fontSize: 21,
                           fontWeight: FontWeight.w600,
                         ),
@@ -60,7 +83,7 @@ class HomeScreen extends StatelessWidget {
                         //   size: 36,
                         //   color: AppColors.orange,
                         // ),
-                        if (controller.notifications.value > 0)
+                        if (homeCtrl.notifications.value > 0)
                           Positioned(
                             right: -3,
                             top: -8,
@@ -68,8 +91,7 @@ class HomeScreen extends StatelessWidget {
                               radius: 8,
                               backgroundColor: AppColors.primaryColor,
                               child: CustomText(
-                                title:
-                                    controller.notifications.value.toString(),
+                                title: homeCtrl.notifications.value.toString(),
                                 fontSize: 10,
                                 color: AppColors.white,
                               ),
@@ -99,7 +121,11 @@ class HomeScreen extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          SearchField(),
+                          SearchField(
+                            controller: searchController,
+                            onChanged: (value) => homeCtrl.searchUsers(value),
+                          ),
+
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
@@ -116,7 +142,9 @@ class HomeScreen extends StatelessWidget {
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  backgroundImage: AssetImage(user.imageUrl),
+                                  backgroundImage: AssetImage(
+                                    AppImages.imageURL,
+                                  ),
                                   radius: 25,
                                 ),
                                 AppSizes.sm.widthBox,
@@ -142,7 +170,7 @@ class HomeScreen extends StatelessWidget {
                                           children: [
                                             LinearProgressIndicator(
                                               minHeight: 13.0,
-                                              value: user.profileCompletion,
+                                              value: users.profileCompletion,
                                               backgroundColor: AppColors.grey,
                                               color: AppColors.orange,
                                               borderRadius:
@@ -153,7 +181,7 @@ class HomeScreen extends StatelessWidget {
                                               bottom: 0,
                                               child: CustomText(
                                                 title:
-                                                    '${controller.profileCompletion.value}%',
+                                                    '${homeCtrl.profileCompletion.value}%',
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w500,
                                                 color: AppColors.white,
@@ -189,25 +217,25 @@ class HomeScreen extends StatelessWidget {
                             children: [
                               statCard(
                                 "Viewed You",
-                                user.viewedYou,
+                                users.viewedYou,
                                 Color(0xFF89A6F0),
                                 "assets/images/eye.png",
                               ),
                               statCard(
                                 "Sent Request",
-                                user.sentRequests,
+                                users.sentRequests,
                                 Color(0xFFFFC969),
                                 "assets/images/send.png",
                               ),
                               statCard(
                                 "Received Request",
-                                user.receivedRequests,
+                                users.receivedRequests,
                                 Color(0xFFFC72AA),
                                 "assets/images/rreceivedequest.png",
                               ),
                               statCard(
                                 "Request Accepted",
-                                user.acceptedRequests,
+                                users.acceptedRequests,
                                 Color(0xFF47E76F),
                                 "assets/images/tick.png",
                               ),
@@ -215,13 +243,23 @@ class HomeScreen extends StatelessWidget {
                           ),
 
                           AppSizes.spaceBtwItems.heightBox,
-                          RecomendedCardWidget(title: "Recommended Matches"),
+                          RecomendedCardWidget(
+                            title: "Recommended Matches",
+                            usersList: homeCtrl.sameCasteMatches.value,
+                            searchQuery: homeCtrl.searchQuery.value,
+                          ),
                           AppSizes.spaceBtwItems.heightBox,
-                          RecomendedCardWidget(title: "Near Your Location"),
+                          RecomendedCardWidget(
+                            title: "Near Your Location",
+                            usersList: homeCtrl.nearLocationMatches.value,
+                            searchQuery: homeCtrl.searchQuery.value,
+                          ),
                           AppSizes.spaceBtwItems.heightBox,
                           RecomendedCardWidget(
                             title: "All Matches",
                             showActionButton: true,
+                            usersList: homeCtrl.allMatches.value,
+                            searchQuery: homeCtrl.searchQuery.value,
                           ),
                         ],
                       ),
@@ -298,6 +336,8 @@ class RecomendedCardWidget extends StatelessWidget {
   final String buttonTitle;
   final bool showActionButton;
   final VoidCallback? onTap;
+  final List<UserModel> usersList;
+  final String searchQuery;
 
   const RecomendedCardWidget({
     super.key,
@@ -305,10 +345,13 @@ class RecomendedCardWidget extends StatelessWidget {
     this.onTap,
     this.showActionButton = false,
     this.buttonTitle = "View All",
+    required this.usersList,
+    this.searchQuery = "",
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasSearch = searchQuery.isNotEmpty;
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: AppSizes.paddingSV,
@@ -349,62 +392,146 @@ class RecomendedCardWidget extends StatelessWidget {
           AppSizes.sm.heightBox,
           SizedBox(
             height: 140,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: 5,
-              separatorBuilder: (context, index) => AppSizes.md.widthBox,
-              itemBuilder: (context, index) {
-                return Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Stack(
-                        children: [
-                          Image.asset(
-                            "assets/images/imageURL.jpg",
-                            width: 135,
-                            height: 150,
-                            fit: BoxFit.cover,
-                          ),
-                          Container(
-                            width: 135,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Color(0x80000000)],
+            child:
+                usersList.isEmpty
+                    ? Center(
+                      child: Text(
+                        hasSearch
+                            ? 'No matches found for "$searchQuery"'
+                            : "No matches found",
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    )
+                    : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: usersList.length,
+                      separatorBuilder:
+                          (context, index) => AppSizes.md.widthBox,
+                      itemBuilder: (context, index) {
+                        final user = usersList[index];
+                        final imageUrl =
+                            (user.profileImages != null &&
+                                    user.profileImages!.isNotEmpty)
+                                ? user.profileImages!.first
+                                : "assets/images/imageURL.jpg";
+                        return Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Stack(
+                                children: [
+                                  Image.asset(
+                                    "assets/images/imageURL.jpg",
+                                    width: 135,
+                                    height: 150,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Container(
+                                    width: 135,
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Color(0x80000000),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Stack(
+                                children: [
+                                  Image.network(
+                                    imageUrl,
+                                    width: 135,
+                                    height: 150,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (
+                                      context,
+                                      child,
+                                      loadingProgress,
+                                    ) {
+                                      if (loadingProgress == null) {
+                                        return child;
+                                      }
+                                      return SizedBox(
+                                        width: 135,
+                                        height: 150,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.appBarColor,
+                                            value:
+                                                loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        (loadingProgress
+                                                                .expectedTotalBytes ??
+                                                            1)
+                                                    : null,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Image.asset(
+                                              "assets/images/imageURL.jpg",
+                                              width: 135,
+                                              height: 150,
+                                              fit: BoxFit.cover,
+                                            ),
+                                  ),
+                                  Container(
+                                    width: 135,
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Color(0x80000000),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
 
-                    Positioned(
-                      bottom: 6,
-                      left: 8,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            title: "Srivalli G",
-                            fontSize: 14,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          CustomText(
-                            title: "Software Eneginer",
-                            fontSize: 11,
-                            color: AppColors.white,
-                          ),
-                        ],
-                      ),
+                            Positioned(
+                              bottom: 6,
+                              left: 8,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    title: user.name ?? "Unknown",
+                                    fontSize: 14,
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  CustomText(
+                                    title: user.occupation ?? "",
+                                    fontSize: 11,
+                                    color: AppColors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                  ],
-                );
-              },
-            ),
           ),
         ],
       ),

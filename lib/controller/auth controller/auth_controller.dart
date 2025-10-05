@@ -27,7 +27,6 @@ class AuthController extends GetxController with NetworkAwareController {
 
   final rxRequestStatus = Status.LOADING.obs;
   final errorMessage = ''.obs;
-  final formKey = GlobalKey<FormState>().obs;
 
   void setRxRequestStatus(Status value) => rxRequestStatus.value = value;
   final FirebaseService firebaseServices = Get.find<FirebaseService>();
@@ -342,6 +341,10 @@ class AuthController extends GetxController with NetworkAwareController {
         },
       );
 
+      final userData = await firebaseServices.getUserData(uid: user.uid);
+      if (userData != null) {
+        await AppStorage.storeLocalUser(AppKeys.userData, userData.toJson());
+      }
       Utils.snackBar("Success", "Step $step saved!", AppColors.green);
       setRxRequestStatus(Status.COMPLETED);
       clearController();
@@ -497,7 +500,10 @@ class AuthController extends GetxController with NetworkAwareController {
           'updatedAt': FieldValue.serverTimestamp(),
         },
       );
-
+      final userData = await firebaseServices.getUserData(uid: user.uid);
+      if (userData != null) {
+        await AppStorage.storeLocalUser(AppKeys.userData, userData.toJson());
+      }
       Utils.snackBar("Success", "Profile completed!", AppColors.green);
       setRxRequestStatus(Status.COMPLETED);
       clearController();
@@ -547,6 +553,7 @@ class AuthController extends GetxController with NetworkAwareController {
         await AppStorage.setUserID(user.id);
         await AppStorage.set('email', loginUserEmail.value.text.trim());
         await AppStorage.set('password', loginPassword.value.text.trim());
+        await firebaseServices.setUserStatus(user.id!, "online");
 
         Utils.snackBar("Success", "Welcome, ${user.email}!", AppColors.green);
         Get.offAllNamed(AppRoutes.dashboardScreen);
@@ -576,6 +583,10 @@ class AuthController extends GetxController with NetworkAwareController {
       return;
     }
     try {
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserId != null) {
+        await firebaseServices.setUserStatus(currentUserId, "offline");
+      }
       await firebaseServices.logoutUser();
       await AppStorage.clearSharedData();
       Get.offAllNamed(AppRoutes.loginScreen);
