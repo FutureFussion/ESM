@@ -20,16 +20,15 @@ class BottomNavBar extends StatelessWidget {
               color: AppColors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Color(0x40B9B9B9),
+                  color: const Color(0x40B9B9B9),
                   spreadRadius: 2,
                   blurRadius: 4,
-                  offset: Offset(0, -2),
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
-
             height: 83,
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -46,9 +45,9 @@ class BottomNavBar extends StatelessWidget {
   }
 
   Widget buildNavItem(String icon, String title, int index) {
-    
-    final bool isSelected = controller.selectedIndex == index;
-    final Color iconColor = isSelected ? Color(0xFFFFB634) : Color(0xFF9C9C9C);
+    final bool isSelected = controller.selectedIndex.value == index;
+    final Color iconColor =
+        isSelected ? const Color(0xFFFFB634) : const Color(0xFF9C9C9C);
 
     return Expanded(
       child: GestureDetector(

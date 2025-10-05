@@ -81,9 +81,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 50,
                     backgroundImage:
-                        (user!.profileImages != null &&
-                                user!.profileImages!.isNotEmpty)
-                            ? NetworkImage(user!.profileImages!.first)
+                        (user!.userProfilePic != null &&
+                                user!.userProfilePic!.isNotEmpty)
+                            ? NetworkImage(user!.userProfilePic!)
                             : AssetImage(AppImages.imageURL) as ImageProvider,
                   ),
                   AppSizes.sm.heightBox,

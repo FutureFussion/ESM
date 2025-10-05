@@ -8,6 +8,7 @@ class UserModel {
   String? age;
   String? dob;
   String? gender;
+  String? userProfilePic;
 
   // Religion
   String? religion;
@@ -52,6 +53,7 @@ class UserModel {
     this.age,
     this.dob,
     this.gender,
+    this.userProfilePic,
     this.religion,
     this.caste,
     this.subCaste,
@@ -87,6 +89,7 @@ class UserModel {
     age = json['age'];
     dob = json['dob'];
     gender = json['gender'];
+    userProfilePic = json['userProfilePic'];
 
     religion = json['religion'];
     caste = json['caste'];
@@ -131,6 +134,7 @@ class UserModel {
     data['age'] = age;
     data['dob'] = dob;
     data['gender'] = gender;
+    data['userProfilePic'] = userProfilePic;
 
     data['religion'] = religion;
     data['caste'] = caste;

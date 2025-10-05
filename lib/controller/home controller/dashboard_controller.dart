@@ -5,4 +5,5 @@ class DashboardController extends GetxController {
   void changeTabIndex(int index) {
     selectedIndex.value = index;
   }
+  static DashboardController get to => Get.find<DashboardController>();
 }

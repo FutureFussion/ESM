@@ -17,7 +17,6 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfile extends StatefulWidget {
-
   const EditProfile({super.key});
 
   @override
@@ -27,13 +26,13 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   File? pickedFile;
   ImagePicker imagePicker = ImagePicker();
+  // final _formKey = GlobalKey<FormState>();
   final controller = Get.put(EditProfileController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: 
-      SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
@@ -196,33 +195,55 @@ class _EditProfileState extends State<EditProfile> {
                                 (val) => controller.updateReligion(val ?? ''),
                           ),
                         ),
+                        editField(
+                          title: "Caste",
+                          hintText: "Enter Caste",
+                          controller: controller.caste.value,
+                          validator:
+                              MultiValidator([
+                                RequiredValidator(
+                                  errorText: "Please enter your caste",
+                                ),
+                              ]).call,
+                        ),
+                        editField(
+                          title: "Sub Caste",
+                          hintText: "Enter Sub Caste",
+                          controller: controller.subCaste.value,
+                          validator:
+                              MultiValidator([
+                                RequiredValidator(
+                                  errorText: "Please enter your sub caste",
+                                ),
+                              ]).call,
+                        ),
 
-                        Obx(
-                          () => CustomDropdown(
-                            hint: "",
-                            title: "Caste",
-                            color: AppColors.white,
-                            borders: false,
-                            items: [],
-                            value: controller.selectedCaste.value,
-                            onChanged: (val) {
-                              (val) => controller.selectedCaste(val!);
-                            },
-                          ),
-                        ),
-                        Obx(
-                          () => CustomDropdown(
-                            hint: "",
-                            title: "Sub Caste",
-                            color: AppColors.white,
-                            borders: false,
-                            items: [],
-                            value: controller.selectedSubCaste.value,
-                            onChanged: (val) {
-                              (val) => controller.selectedSubCaste(val!);
-                            },
-                          ),
-                        ),
+                        // Obx(
+                        //   () => CustomDropdown(
+                        //     hint: "",
+                        //     title: "Caste",
+                        //     color: AppColors.white,
+                        //     borders: false,
+                        //     items: [],
+                        //     value: controller.selectedCaste.value,
+                        //     onChanged: (val) {
+                        //       (val) => controller.selectedCaste(val!);
+                        //     },
+                        //   ),
+                        // ),
+                        // Obx(
+                        //   () => CustomDropdown(
+                        //     hint: "",
+                        //     title: "Sub Caste",
+                        //     color: AppColors.white,
+                        //     borders: false,
+                        //     items: [],
+                        //     value: controller.selectedSubCaste.value,
+                        //     onChanged: (val) {
+                        //       (val) => controller.selectedSubCaste(val!);
+                        //     },
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -261,7 +282,27 @@ class _EditProfileState extends State<EditProfile> {
                     ),
                   ),
                   AppSizes.spaceBtwSections.heightBox,
-                  MainButton(width: 193, title: "Save", onPressed: () {}),
+                  Obx(
+                    () => MainButton(
+                      width: 193,
+                      loading: controller.loading.value,
+                      title: "Save",
+                      onPressed: () {
+                        // if (_formKey.currentState!.validate()) {
+                        // if (controller.materialStatus.value.isEmpty) {
+                        //   Utils.snackBar(
+                        //     "Error",
+                        //     "Please select your marital status",
+                        //     AppColors.red,
+                        //   );
+                        //   return;
+                        // }
+
+                        controller.updateProfile();
+                        // }
+                      },
+                    ),
+                  ),
                   AppSizes.spaceBtwSections.heightBox,
                 ],
               ),

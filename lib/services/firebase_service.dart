@@ -18,6 +18,7 @@ import 'package:get/get.dart';
 class FirebaseService extends GetxService {
   final _db = FirebaseFirestore.instance;
   final DatabaseReference db = FirebaseDatabase.instance.ref();
+  final _storage = FirebaseStorage.instance;
 
   /// --- SignUp With Emial ---
   Future<String?> signUpWithEmailAndPassword({
@@ -286,7 +287,7 @@ class FirebaseService extends GetxService {
 
   /// --- Single Profile Image ---
   // Future<String> uploadProfileImage(String userId, File file) async {
-  //   final ref = FirebaseStorage.instance.ref().child(
+  //   final ref = _storage.ref().child(
   //     'profile_images/$userId.jpg',
   //   );
   //   await ref.putFile(file);
@@ -295,11 +296,28 @@ class FirebaseService extends GetxService {
 
   /// --- Multiple Profile Image ---
   Future<String> uploadProfileImage(String fileName, File file) async {
-    final ref = FirebaseStorage.instance.ref().child(
-      "profile_images/$fileName.jpg",
-    );
+    final ref = _storage.ref().child("profile_images/$fileName.jpg");
     await ref.putFile(file);
     return await ref.getDownloadURL();
+  }
+
+  /// --- Upload Image to Firebase Storage ---
+  Future<String?> uploadFileToStorage({
+    required File file,
+    required String path,
+  }) async {
+    try {
+      final ref = _storage.ref().child(path);
+      final uploadTask = await ref.putFile(file);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('Uploading as: ${FirebaseAuth.instance.currentUser?.uid}');
+
+      debugPrint("Storage upload error: $e");
+      Utils.snackBar("Error", "Image upload failed!", AppColors.red);
+      return null;
+    }
   }
 
   Future<void> deleteProfileImage(String userId) async {
